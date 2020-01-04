@@ -1,0 +1,203 @@
+/* Constants for bricks */
+var NUM_ROWS = 8;
+var BRICK_TOP_OFFSET = 10;
+var BRICK_SPACING = 2;
+var NUM_BRICKS_PER_ROW = 10;
+var BRICK_HEIGHT = 10;
+var SPACE_FOR_BRICKS = getWidth() - (NUM_BRICKS_PER_ROW + 1) * BRICK_SPACING;
+var BRICK_WIDTH = SPACE_FOR_BRICKS / NUM_BRICKS_PER_ROW;
+
+/* Constants for ball and paddle */
+var PADDLE_WIDTH = 80;
+var PADDLE_HEIGHT = 15;
+var PADDLE_OFFSET = 10;
+var PADDLE_Y = getHeight() - PADDLE_OFFSET - PADDLE_HEIGHT;
+var rect;
+var count = 0;
+var paddle;
+var ball;
+var dx = 4;
+var dy = 4;
+var BALL_RADIUS = 10;
+var x;
+var y;
+var count1 = 0;
+var count2 = 3;
+var txt;
+
+function start(){
+	bricks();
+	ball();
+	paddle();
+	mouseMoveMethod(changepaddle);
+	setTimer(draw, 20);
+}
+
+function bricks(){
+    x = BRICK_SPACING;
+    y = BRICK_TOP_OFFSET;
+    for(var i = 0; i < NUM_BRICKS_PER_ROW; i++){
+        for (var j = 0; j < NUM_ROWS; j++){
+            if (count < 2){
+                rectangle(x, y, Color.red);
+            }else if (count < 4){
+                rectangle(x, y, Color.orange);
+            }else if (count < 6){
+                rectangle(x, y, Color.green);
+            }else{
+                rectangle(x, y, Color.blue);
+            }
+            count ++;
+            y += (BRICK_HEIGHT + BRICK_SPACING);
+        }
+        count = 0;
+        y = BRICK_TOP_OFFSET;
+        x += (BRICK_WIDTH + BRICK_SPACING);
+    }
+}
+
+function rectangle(x, y, color){
+    rect = new Rectangle(BRICK_WIDTH, BRICK_HEIGHT);
+    rect.setPosition(x, y);
+    rect.setColor(color);
+    add(rect);
+}
+
+function paddle(){
+    paddle = new Rectangle(PADDLE_WIDTH, PADDLE_HEIGHT);
+    paddle.setPosition(0, PADDLE_Y);
+    add(paddle);
+}
+
+function changepaddle(e){
+    var X = e.getX()-PADDLE_WIDTH/2;
+    if (X < 0){
+        X = 0;
+    }
+    if (X > getWidth()-PADDLE_WIDTH){
+        X = getWidth()-PADDLE_WIDTH;
+    }
+    paddle.setPosition(X, PADDLE_Y);
+}
+
+function ball(){
+    ball = new Circle(BALL_RADIUS);
+	ball.setPosition(200, 200);
+	add(ball);
+}
+
+
+function draw(){
+	checkWalls();
+	checkthing();
+	ball.move(dx, dy);
+}
+
+function checkWalls(){
+
+	if(ball.getX() + ball.getRadius() > getWidth()){
+		dx = -dx;
+	}
+	
+	// Bounce off left wall
+	if(ball.getX() - ball.getRadius() < 0){
+		dx = -dx;
+	}
+	
+	// Bounce off bottom wall
+	if(ball.getY() + ball.getRadius() > getHeight()){
+	    stopTimer(draw);
+	    count2 -=1;
+	    life();
+	    if (count2 == 0){
+	        lose();
+	    }
+	    mouseClickMethod(continu);
+	}
+
+
+	// Bounce off top wall
+	if(ball.getY() - ball.getRadius() < 0){
+		dy = -dy;
+	}
+}
+
+function checkthing(){
+    var elem = getElementAt(ball.getX() + ball.getRadius(), ball.getY());
+    if (elem != null){
+        dx = -dx;
+        if (elem != paddle){
+            remove (elem);
+            count1 ++;
+        }
+    }
+
+    elem = getElementAt(ball.getX() - ball.getRadius(), ball.getY());
+    if (elem != null){
+        dx = -dx;
+        if (elem != paddle){
+            remove (elem);
+            count1 ++;
+        }
+    }
+    
+    elem = getElementAt(ball.getX(), ball.getY() + ball.getRadius());
+    if (elem != null){
+        dy = -dy;
+        if (elem != paddle){
+            remove (elem);
+            count1 ++;
+        }
+    }
+    
+    elem = getElementAt(ball.getX(), ball.getY() - ball.getRadius());
+    if (elem != null){
+        dy = -dy;
+        if (elem != paddle){
+            remove (elem);
+            count1 ++;
+        }
+    }
+        
+    if (count1 == 90){
+        win();
+    }
+}
+
+
+
+function win(){
+    stopTimer(draw);
+    var win = new Rectangle(500, 1000);
+    win.setPosition(0,0);
+    win.setColor(Color.white);
+    add(win);
+    message(180, 300, "You win!");
+}
+
+function message(x, y, ww){
+    txt = new Text(ww);
+    txt.setPosition(x, y);
+    add(txt);
+}
+
+
+function life(){
+    message(80, 220, "You have: " + count2 + " lives left");
+    
+}
+
+function lose(){
+    count2 = 3
+    var win = new Rectangle(500, 1000);
+    win.setPosition(0,0);
+    win.setColor(Color.white);
+    add(win);
+    message(150, 300, "You lose!");
+}
+
+function continu(){
+    remove(txt);
+    ball.setPosition(200, 200);
+    setTimer(draw, 20);
+}
